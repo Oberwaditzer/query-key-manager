@@ -52,7 +52,13 @@ export function createQueryKeys<TSchema extends Record<string, unknown>>(
 }
 
 export { defineQueryOptions };
-export type { DefineQueryOptionsInput, QueryDefinition } from './query-definition.js';
+export { mergeQueryKeys } from './merge-query-keys.js';
+export type {
+  DefineQueryOptionsInput,
+  QueryDefinition,
+  ResolvedQueryOptions,
+} from './query-definition.js';
+export type { MergeQueryKeysResult } from './merge-query-keys.js';
 
 function transformNode<TNode>(
   node: TNode,

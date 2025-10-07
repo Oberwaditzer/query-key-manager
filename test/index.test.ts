@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createQueryKeys, defineQueryOptions } from '../src';
+import { createQueryKeys, defineQueryOptions, mergeQueryKeys } from '../src';
 
 describe('createQueryKeys', () => {
   it('adds query keys for static query options', () => {
@@ -86,5 +86,37 @@ describe('createQueryKeys', () => {
     });
 
     expect(queries.admin.users.list.queryKey).toEqual(['admin', 'users', 'list']);
+  });
+
+  it('merges multiple schema fragments', () => {
+    const userSchema = {
+      users: {
+        list: defineQueryOptions({
+          queryFn: async () => ['alice', 'bob'],
+        }),
+      },
+    };
+
+    const extraSchema = {
+      users: {
+        detail: (id: string) =>
+          defineQueryOptions({
+            queryFn: async () => ({ id }),
+          }),
+      },
+      teams: {
+        list: defineQueryOptions({
+          queryFn: async () => ['core', 'platform'],
+        }),
+      },
+    };
+
+    const mergedSchema = mergeQueryKeys(userSchema, extraSchema);
+    const queries = createQueryKeys(mergedSchema);
+
+    expect(Object.keys(queries)).toEqual(['users', 'teams']);
+    expect(queries.users.list.queryKey).toEqual(['users', 'list']);
+    expect(queries.users.detail('123').queryKey).toEqual(['users', 'detail', '123']);
+    expect(queries.teams.list.queryKey).toEqual(['teams', 'list']);
   });
 });

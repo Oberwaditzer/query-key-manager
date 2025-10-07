@@ -38,6 +38,34 @@ queries.users.list.queryKey; // ['users', 'list']
 queries.users.detail('123').queryKey; // ['users', 'detail', '123']
 ```
 
+### Composing Schemas
+
+Split schemas across files and merge them before creating the final query helpers:
+
+```ts
+import { createQueryKeys, defineQueryOptions, mergeQueryKeys } from '@ocodio/query-key-manager';
+
+const userQueries = {
+  users: {
+    list: defineQueryOptions({
+      queryFn: () => fetch('/api/users').then((res) => res.json()),
+    }),
+  },
+};
+
+const adminQueries = {
+  users: {
+    detail: (id: string) =>
+      defineQueryOptions({
+        queryFn: () => fetch(`/api/users/${id}`).then((res) => res.json()),
+      }),
+  },
+};
+
+const schema = mergeQueryKeys(userQueries, adminQueries);
+const queries = createQueryKeys(schema);
+```
+
 Provide a `queryKey` manually when you need advanced control. The helper preserves any keys you set yourself.
 
 ## Scripts
