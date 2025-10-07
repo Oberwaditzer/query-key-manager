@@ -11,7 +11,7 @@ import {
 type QueryFactory = (...args: unknown[]) => QueryDefinition;
 
 export type QueryKeysSchemaValue =
-  | QueryDefinition<unknown, unknown, unknown, QueryKey, never>
+  | QueryDefinition<unknown, unknown, unknown, QueryKey>
   | QueryFactory
   | QueryKeysSchemaRecord;
 
@@ -23,22 +23,20 @@ type NormalizeSchemaValue<T> = T extends QueryDefinition<
   infer TQueryFnData,
   infer TError,
   infer TData,
-  infer TQueryKey,
-  infer TPageParam
+  infer TQueryKey
 >
-  ? ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam>
+  ? ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey>
   : T extends (
         ...args: infer TArgs
       ) => QueryDefinition<
         infer TQueryFnData,
         infer TError,
         infer TData,
-        infer TQueryKey,
-        infer TPageParam
+        infer TQueryKey
       >
     ? (
         ...args: TArgs
-      ) => ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam>
+      ) => ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey>
     : T extends Record<string, unknown>
       ? { [K in keyof T]: NormalizeSchemaValue<T[K]> }
       : never;

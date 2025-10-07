@@ -54,7 +54,7 @@ const userQueries = {
 };
 
 const adminQueries = {
-  users: {
+  admin: {
     detail: (id: string) =>
       defineQueryOptions({
         queryFn: () => fetch(`/api/users/${id}`).then((res) => res.json()),

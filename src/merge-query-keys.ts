@@ -5,7 +5,7 @@ import {
   type QueryDefinition,
 } from './query-definition.js';
 
-type AnyQueryDefinition = QueryDefinition<unknown, unknown, unknown, QueryKey, never>;
+type AnyQueryDefinition = QueryDefinition<unknown, unknown, unknown, QueryKey>;
 type AnyQueryFactory = (...args: unknown[]) => AnyQueryDefinition;
 
 export type QuerySchemaValue =

@@ -1,7 +1,7 @@
 import {
   queryOptions,
   type QueryKey,
-  type QueryOptions,
+  type UseQueryOptions,
 } from '@tanstack/react-query';
 
 export const QUERY_DEFINITION_SYMBOL = Symbol('query-key-manager.queryDefinition');
@@ -11,8 +11,7 @@ export type DefineQueryOptionsInput<
   TError = unknown,
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
-  TPageParam = never,
-> = Omit<QueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam>, 'queryKey'> & {
+> = Omit<UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>, 'queryKey'> & {
   queryKey?: TQueryKey;
 };
 
@@ -21,15 +20,13 @@ export interface QueryDefinition<
   TError = unknown,
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
-  TPageParam = never,
 > {
   readonly [QUERY_DEFINITION_SYMBOL]: true;
   readonly options: DefineQueryOptionsInput<
     TQueryFnData,
     TError,
     TData,
-    TQueryKey,
-    TPageParam
+    TQueryKey
   >;
 }
 
@@ -38,8 +35,7 @@ export type ResolvedQueryOptions<
   TError,
   TData,
   TQueryKey extends QueryKey,
-  TPageParam,
-> = Omit<QueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam>, 'queryKey'> & {
+> = Omit<UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>, 'queryKey'> & {
   queryKey: TQueryKey & QueryKey;
 };
 
@@ -48,14 +44,13 @@ export function defineQueryOptions<
   TError = unknown,
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
-  TPageParam = never,
 >(
-  options: DefineQueryOptionsInput<TQueryFnData, TError, TData, TQueryKey, TPageParam>,
-): QueryDefinition<TQueryFnData, TError, TData, TQueryKey, TPageParam> {
+  options: DefineQueryOptionsInput<TQueryFnData, TError, TData, TQueryKey>,
+): QueryDefinition<TQueryFnData, TError, TData, TQueryKey> {
   return {
     [QUERY_DEFINITION_SYMBOL]: true,
     options,
-  } as QueryDefinition<TQueryFnData, TError, TData, TQueryKey, TPageParam>;
+  } as QueryDefinition<TQueryFnData, TError, TData, TQueryKey>;
 }
 
 export function resolveQueryDefinition<
@@ -63,18 +58,17 @@ export function resolveQueryDefinition<
   TError,
   TData,
   TQueryKey extends QueryKey,
-  TPageParam,
 >(
-  definition: QueryDefinition<TQueryFnData, TError, TData, TQueryKey, TPageParam>,
+  definition: QueryDefinition<TQueryFnData, TError, TData, TQueryKey>,
   path: readonly string[],
   args: readonly unknown[] = [],
-): ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam> {
+): ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey> {
   const { options } = definition;
 
   if (Array.isArray(options.queryKey) && options.queryKey.length > 0) {
     return queryOptions(
       options as unknown as Parameters<typeof queryOptions>[0],
-    ) as unknown as ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam>;
+    ) as unknown as ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey>;
   }
 
   const filteredArgs = args.filter((value) => value !== undefined);
@@ -91,15 +85,15 @@ export function resolveQueryDefinition<
   const withKey = {
     ...options,
     queryKey: derivedKey as TQueryKey & QueryKey,
-  } as ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam>;
+  } as ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey>;
 
   return queryOptions(
     withKey as unknown as Parameters<typeof queryOptions>[0],
-  ) as unknown as ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam>;
+  ) as unknown as ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey>;
 }
 
 export function isQueryDefinition(
   value: unknown,
-): value is QueryDefinition<unknown, unknown, unknown, QueryKey, never> {
+): value is QueryDefinition<unknown, unknown, unknown, QueryKey> {
   return Boolean(value) && typeof value === 'object' && QUERY_DEFINITION_SYMBOL in (value as object);
 }

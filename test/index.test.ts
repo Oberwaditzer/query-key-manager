@@ -7,6 +7,7 @@ describe('createQueryKeys', () => {
     const queries = createQueryKeys({
       users: {
         list: defineQueryOptions({
+          staleTime: 1_000,
           queryFn: async () => ['alice', 'bob'],
         }),
       },
@@ -106,7 +107,7 @@ describe('createQueryKeys', () => {
       },
       teams: {
         list: defineQueryOptions({
-          queryFn: async () => ['core', 'platform'],
+          queryFn: async () => ['core', 'platform']
         }),
       },
     };
