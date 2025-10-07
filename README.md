@@ -77,6 +77,11 @@ Provide a `queryKey` manually when you need advanced control. The helper preserv
 - `pnpm coverage` – Generate a coverage report.
 - `pnpm docs` – Produce API documentation with TypeDoc.
 - `pnpm release` – Run the Changesets release workflow.
+- `pnpm typecheck` – Run the TypeScript compiler in `--noEmit` mode.
+
+## Examples
+
+Check out `examples/basic/` for a fully wired React Query setup that splits schemas across files, merges them with `mergeQueryKeys`, and consumes them in components. Examples live outside the published output (only `dist/` is shipped), so feel free to drop in more scenarios without affecting bundle size.
 
 ## Versioning & Releases
 
