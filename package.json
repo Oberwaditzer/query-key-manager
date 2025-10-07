@@ -1,17 +1,17 @@
 {
   "name": "@ocodio/query-key-manager",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": false,
   "description": "Utility helpers for organizing TanStack Query keys.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
+      "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
   },
