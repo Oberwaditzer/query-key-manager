@@ -38,6 +38,9 @@ queries.users.list.queryKey; // ['users', 'list']
 
 // Factories inherit the path and append their arguments when no queryKey is provided.
 queries.users.detail('123').queryKey; // ['users', 'detail', '123']
+
+// Object containers provide helpers that return the shared key for all nested queries.
+queries.users.getQueryKey(); // ['users']
 ```
 
 Looking for a fuller setup? Check out [examples/basic](./examples/basic/README.md) for a React Query wiring example.
@@ -141,6 +144,35 @@ queryClient.setQueryData(queries.users.list.queryKey, data);
 queryClient.invalidateQueries({ queryKey: queries.users.list.queryKey });
 ```
 
+### Object-Level Query Keys
+
+By default, every plain object in your schema gets a non-enumerable `getQueryKey()` helper. This returns the shared key for all queries nested under that branch, making it handy for bulk invalidations.
+
+```ts
+const queries = createQueryKeys({
+  users: {
+    list: defineQueryOptions({
+      queryFn: () => fetch('/api/users').then((res) => res.json()),
+    }),
+    detail: (id: string) =>
+      defineQueryOptions({
+        queryFn: () => fetch(`/api/users/${id}`).then((res) => res.json()),
+      }),
+  },
+});
+
+queries.users.getQueryKey(); // ['users']
+queryClient.invalidateQueries({ queryKey: queries.users.getQueryKey() });
+```
+
+Leaf helpers that originate from `defineQueryOptions` or factories do not receive `getQueryKey()`—the helper attaches only to nested objects. If you prefer not to generate these helpers, pass the optional second argument:
+
+```ts
+const queries = createQueryKeys(schema, { generateKeysForObjects: false });
+```
+
+With the option disabled, no additional helpers are added.
+
 ## Acknowledgements
 
 - [TanStack Query](https://tanstack.com/query/latest)
@@ -151,4 +183,3 @@ queryClient.invalidateQueries({ queryKey: queries.users.list.queryKey });
 ## License
 
 [MIT](./LICENSE)
-
