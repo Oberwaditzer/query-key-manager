@@ -1,6 +1,6 @@
 {
   "name": "@ocodio/query-key-manager",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "private": false,
   "description": "Utility helpers for organizing TanStack Query keys.",
   "license": "MIT",
@@ -66,6 +66,6 @@
   "keywords": [],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Oberwaditzer/query-key-manager"
+    "url": "git+https://github.com/Oberwaditzer/query-key-manager.git"
   }
 }
