@@ -19,7 +19,46 @@ export interface QueryKeysSchemaRecord {
   [segment: string]: QueryKeysSchemaValue;
 }
 
-type NormalizeSchemaValue<T> = T extends QueryDefinition<
+export interface CreateQueryKeysOptions {
+  generateKeysForObjects?: boolean;
+}
+
+type InternalCreateQueryKeysOptions = {
+  generateKeysForObjects: boolean;
+};
+
+type ResolvedCreateQueryKeysOptions<
+  TOptions extends CreateQueryKeysOptions | undefined,
+> = TOptions extends { generateKeysForObjects: false }
+  ? { generateKeysForObjects: false }
+  : { generateKeysForObjects: true };
+
+type ObjectGetQueryKeyMixin<
+  TOptions extends InternalCreateQueryKeysOptions,
+  TPath extends readonly string[],
+> = TOptions['generateKeysForObjects'] extends true
+  ? TPath extends []
+    ? {}
+    : { getQueryKey: () => readonly [...TPath] }
+  : {};
+
+type NormalizeSchemaRecord<
+  T extends Record<string, unknown>,
+  TOptions extends InternalCreateQueryKeysOptions,
+  TPath extends readonly string[],
+> = {
+  [K in keyof T]: NormalizeSchemaValue<
+    T[K],
+    TOptions,
+    readonly [...TPath, K & string]
+  >;
+} & ObjectGetQueryKeyMixin<TOptions, TPath>;
+
+type NormalizeSchemaValue<
+  T,
+  TOptions extends InternalCreateQueryKeysOptions,
+  TPath extends readonly string[],
+> = T extends QueryDefinition<
   infer TQueryFnData,
   infer TError,
   infer TData,
@@ -36,17 +75,33 @@ type NormalizeSchemaValue<T> = T extends QueryDefinition<
       >
     ? (
         ...args: TArgs
-      ) => ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey>
+      ) => NormalizeSchemaValue<
+        ReturnType<T>,
+        TOptions,
+        TPath
+      >
     : T extends Record<string, unknown>
-      ? { [K in keyof T]: NormalizeSchemaValue<T[K]> }
+      ? NormalizeSchemaRecord<T, TOptions, TPath>
       : never;
 
-export type CreateQueryKeysResult<TSchema> = NormalizeSchemaValue<TSchema>;
+export type CreateQueryKeysResult<
+  TSchema,
+  TOptions extends CreateQueryKeysOptions | undefined = undefined,
+> = NormalizeSchemaValue<TSchema, ResolvedCreateQueryKeysOptions<TOptions>, []>;
 
-export function createQueryKeys<TSchema extends Record<string, unknown>>(
+export function createQueryKeys<
+  TSchema extends Record<string, unknown>,
+  TOptions extends CreateQueryKeysOptions | undefined = undefined,
+>(
   schema: TSchema,
-): NormalizeSchemaValue<TSchema> {
-  return transformNode(schema, []) as NormalizeSchemaValue<TSchema>;
+  options?: TOptions,
+): CreateQueryKeysResult<TSchema, TOptions> {
+  const resolvedOptions =
+    options?.generateKeysForObjects === false
+      ? ({ generateKeysForObjects: false } as const)
+      : ({ generateKeysForObjects: true } as const);
+
+  return transformNode(schema, [] as const, resolvedOptions);
 }
 
 export { defineQueryOptions };
@@ -58,25 +113,44 @@ export type {
 } from './query-definition.js';
 export type { MergeQueryKeysResult } from './merge-query-keys.js';
 
-function transformNode<TNode>(
+function transformNode<
+  TNode,
+  const TPath extends readonly string[],
+  TOptions extends InternalCreateQueryKeysOptions,
+>(
   node: TNode,
-  path: readonly string[],
-): NormalizeSchemaValue<TNode> {
+  path: TPath,
+  options: TOptions,
+): NormalizeSchemaValue<TNode, TOptions, TPath> {
   if (isQueryDefinition(node)) {
-    return resolveQueryDefinition(node, path) as NormalizeSchemaValue<TNode>;
+    return resolveQueryDefinition(node, path) as NormalizeSchemaValue<TNode, TOptions, TPath>;
   }
 
   if (typeof node === 'function') {
-    return createFactory(node as QueryFactory, path) as NormalizeSchemaValue<TNode>;
+    return createFactory(node as QueryFactory, path, options) as NormalizeSchemaValue<
+      TNode,
+      TOptions,
+      TPath
+    >;
   }
 
   if (isPlainObject(node)) {
-    const entries = Object.entries(node as Record<string, unknown>).map(([segment, value]) => [
-      segment,
-      transformNode(value, [...path, segment]),
-    ]);
+    const entries = Object.entries(node as Record<string, unknown>).map(([segment, value]) => {
+      const nextPath = [...path, segment] as const;
+      return [segment, transformNode(value, nextPath, options)];
+    });
 
-    return Object.fromEntries(entries) as NormalizeSchemaValue<TNode>;
+    const record = Object.fromEntries(entries) as Record<string, unknown>;
+
+    if (options.generateKeysForObjects && path.length > 0) {
+      return attachGetQueryKey(record, () => path as unknown as QueryKey) as NormalizeSchemaValue<
+        TNode,
+        TOptions,
+        TPath
+      >;
+    }
+
+    return record as NormalizeSchemaValue<TNode, TOptions, TPath>;
   }
 
   throw new TypeError(
@@ -84,10 +158,17 @@ function transformNode<TNode>(
   );
 }
 
-function createFactory<TFactory extends QueryFactory>(
+function createFactory<
+  TFactory extends QueryFactory,
+  const TPath extends readonly string[],
+  TOptions extends InternalCreateQueryKeysOptions,
+>(
   factory: TFactory,
-  path: readonly string[],
-): (...args: Parameters<TFactory>) => NormalizeSchemaValue<ReturnType<TFactory>> {
+  path: TPath,
+  options: TOptions,
+): (...args: Parameters<TFactory>) => NormalizeSchemaValue<ReturnType<TFactory>, TOptions, TPath> {
+  void options;
+
   return (...args: Parameters<TFactory>) => {
     const definition = factory(...args);
     if (!isQueryDefinition(definition)) {
@@ -96,10 +177,29 @@ function createFactory<TFactory extends QueryFactory>(
       );
     }
 
-    return resolveQueryDefinition(definition, path, args) as NormalizeSchemaValue<ReturnType<TFactory>>;
+    return resolveQueryDefinition(definition, path, args) as NormalizeSchemaValue<
+      ReturnType<TFactory>,
+      TOptions,
+      TPath
+    >;
   };
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Object.prototype.toString.call(value) === '[object Object]';
+}
+
+function attachGetQueryKey<TTarget extends object, TKey>(
+  target: TTarget,
+  getKey: () => TKey,
+): TTarget & { getQueryKey: () => TKey } {
+  if (!('getQueryKey' in target)) {
+    Object.defineProperty(target, 'getQueryKey', {
+      value: getKey,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+
+  return target as TTarget & { getQueryKey: () => TKey };
 }

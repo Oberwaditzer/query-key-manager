@@ -6,6 +6,7 @@ export {
 
 export type {
   CreateQueryKeysResult,
+  CreateQueryKeysOptions,
   DefineQueryOptionsInput,
   MergeQueryKeysResult,
   QueryDefinition,

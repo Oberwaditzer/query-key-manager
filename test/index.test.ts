@@ -89,6 +89,55 @@ describe('createQueryKeys', () => {
     expect(queries.admin.users.list.queryKey).toEqual(['admin', 'users', 'list']);
   });
 
+  it('exposes getQueryKey helpers by default', () => {
+    const queries = createQueryKeys({
+      users: {
+        list: defineQueryOptions({
+          queryFn: async () => ['alice', 'bob'],
+        }),
+        detail: (id: string) =>
+          defineQueryOptions({
+            queryFn: async () => ({ id }),
+          }),
+      },
+    });
+
+    expect(queries.users.getQueryKey()).toEqual(['users']);
+    expect(Object.keys(queries.users)).toEqual(['list', 'detail']);
+    expect('getQueryKey' in queries.users.list).toBe(false);
+    expect('getQueryKey' in queries.users.detail).toBe(false);
+
+    const detailOptions = queries.users.detail('user-1');
+
+    expect(detailOptions.queryKey).toEqual(['users', 'detail', 'user-1']);
+    expect('getQueryKey' in detailOptions).toBe(false);
+  });
+
+  it('omits getQueryKey helpers when disabled', () => {
+    const queries = createQueryKeys(
+      {
+        users: {
+          list: defineQueryOptions({
+            queryFn: async () => ['alice', 'bob'],
+          }),
+          detail: (id: string) =>
+            defineQueryOptions({
+              queryFn: async () => ({ id }),
+            }),
+        },
+      },
+      { generateKeysForObjects: false },
+    );
+
+    expect('getQueryKey' in queries.users).toBe(false);
+    expect('getQueryKey' in queries.users.list).toBe(false);
+    expect('getQueryKey' in queries.users.detail).toBe(false);
+
+    const detailOptions = queries.users.detail('user-1');
+
+    expect('getQueryKey' in detailOptions).toBe(false);
+  });
+
   it('merges multiple schema fragments', () => {
     const userSchema = {
       users: {

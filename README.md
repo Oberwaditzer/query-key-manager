@@ -151,3 +151,4 @@ queryClient.invalidateQueries({ queryKey: queries.users.list.queryKey });
 ## License
 
 [MIT](./LICENSE)
+
