@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { createFileRoute } from '@tanstack/react-router';
+
 import { userQueries } from '@/queries/userQueries.ts';
 
 export const Route = createFileRoute('/')({
@@ -12,10 +13,9 @@ function App() {
 
   const queryClient = useQueryClient();
 
-  const invalidateData = async() => {
-    console.log('invalidate')
-    await queryClient.invalidateQueries({queryKey: userQueries.users.getQueryKey()})
-  }
+  const invalidateData = async () => {
+    await queryClient.invalidateQueries({ queryKey: userQueries.users.getQueryKey() });
+  };
 
   return (
     <div className="text-center">
@@ -28,7 +28,7 @@ function App() {
       <h2>Admin Data</h2>
       <ul>
         {adminData?.map((user) => (
-          <li key={user.id}>{user.name} -  {user.timeStamp}</li>
+          <li key={user.id}>{user.name} - {user.timeStamp}</li>
         ))}
       </ul>
       <button onClick={invalidateData}>invalidate</button>

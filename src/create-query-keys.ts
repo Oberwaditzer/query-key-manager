@@ -38,9 +38,9 @@ type ObjectGetQueryKeyMixin<
   TPath extends readonly string[],
 > = TOptions['generateKeysForObjects'] extends true
   ? TPath extends []
-    ? {}
+    ? Record<never, never>
     : { getQueryKey: () => readonly [...TPath] }
-  : {};
+  : Record<never, never>;
 
 type NormalizeSchemaRecord<
   T extends Record<string, unknown>,
@@ -65,14 +65,7 @@ type NormalizeSchemaValue<
   infer TQueryKey
 >
   ? ResolvedQueryOptions<TQueryFnData, TError, TData, TQueryKey>
-  : T extends (
-        ...args: infer TArgs
-      ) => QueryDefinition<
-        infer TQueryFnData,
-        infer TError,
-        infer TData,
-        infer TQueryKey
-      >
+  : T extends (...args: infer TArgs) => QueryDefinition
     ? (
         ...args: TArgs
       ) => NormalizeSchemaValue<

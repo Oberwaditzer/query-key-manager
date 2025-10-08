@@ -1,12 +1,17 @@
-import { defineConfig } from 'vite'
-import viteReact from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+/* eslint-env node */
 
-import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
-import { resolve } from 'node:path'
-import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin'
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin';
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
+import tailwindcss from '@tailwindcss/vite';
+import viteReact from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 
 // https://vitejs.dev/config/
+const projectRoot = dirname(fileURLToPath(import.meta.url));
+
 export default defineConfig({
   plugins: [
     nitroV2Plugin(),
@@ -20,7 +25,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
+      '@': resolve(projectRoot, './src'),
     },
   },
-})
+});
