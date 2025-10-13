@@ -4,12 +4,19 @@ Manage your [TanStack Query](https://tanstack.com/query/latest) keys with ease. 
 
 Query Key Manager was created to centralize your data layer definitions, cut down on redundant hook factories, and keep query helpers usable in any context—not just inside React components.
 
+## Key Features
+
+- Keep every query key and option in one place with strongly-typed schemas.
+- Compose schemas across files and domains while preserving build-time safety.
+- Share the same helpers across React components, server utilities, and scripts.
+- Stay close to TanStack Query APIs with zero runtime dependencies beyond the core library.
+
 ## Table of Contents
 
-- [Getting Started](#getting-started)
+- [Key Features](#key-features)
+- [Installation](#installation)
 - [Quick Start](#quick-start)
-- [Motivation](#motivation)
-- [Documentation](#documentation)
+- [Usage](#usage)
   - [Defining Schemas](#defining-schemas)
   - [Composing Schemas](#composing-schemas)
   - [Manual Override](#manual-override)
@@ -17,10 +24,14 @@ Query Key Manager was created to centralize your data layer definitions, cut dow
   - [Per-Query Override](#per-query-override)
   - [Usage with `QueryClient`](#usage-with-queryclient)
   - [Object-Level Query Keys](#object-level-query-keys)
+  - [Using Outside React Components](#using-outside-react-components)
+- [Examples](#examples)
+- [Why Query Key Manager](#why-query-key-manager)
+- [Contributing](#contributing)
 - [Acknowledgements](#acknowledgements)
 - [License](#license)
 
-## Getting Started
+## Installation
 
 ```bash
 npm install @ocodio/query-key-manager
@@ -65,13 +76,7 @@ queries.users.getQueryKey(); // ['users']
 
 Looking for a fuller setup? Check out [examples/basic](./examples/basic/README.md) for a React Query wiring example.
 
-## Motivation
-
-[TanStack Query](https://tanstack.com/query/latest) is a great library for managing your data fetching. It provides a lot of flexibility and is easy to use. However, it can be difficult to keep your queries organized and avoid typos. Especially when you have a lot of queries.
-
-To solve this problem, I created this library. It provides a centralized place to define your queries and provides type-safety. It is also easy to merge schemas from multiple files. No extra dependencies are used besides TanStack Query.
-
-## Documentation
+## Usage
 
 ### Defining Schemas
 
@@ -192,6 +197,37 @@ const queries = createQueryKeys(schema, { generateKeysForObjects: false });
 ```
 
 With the option disabled, no additional helpers are added.
+
+### Using Outside React Components
+
+Because every helper carries a ready-to-use `queryKey`, you can share them anywhere TanStack Query runs—CLI scripts, server handlers, or background jobs:
+
+```ts
+import { QueryClient } from '@tanstack/react-query';
+import { queries } from './queries';
+
+const queryClient = new QueryClient();
+
+await queryClient.prefetchQuery(queries.users.detail('123'));
+const cached = queryClient.getQueryData(queries.users.detail('123').queryKey);
+```
+
+## Examples
+
+- [`examples/basic`](./examples/basic/README.md) — end-to-end setup demonstrating how to wire schemas into a React Query app.
+
+## Why Query Key Manager
+
+[TanStack Query](https://tanstack.com/query/latest) is a powerful toolkit, but large projects can end up with scattered query keys, duplicated hooks, and brittle string-based lookups. Query Key Manager provides a centralized, type-safe layer that keeps schemas consistent, reduces boilerplate, and ensures any consumer—React component or otherwise—gets reliable query keys with minimal effort. No extra dependencies are required beyond TanStack Query itself.
+
+## Contributing
+
+Contributions, bug reports, and feature ideas are all welcome.
+
+1. Fork the repository and create a feature branch.
+2. Install dependencies with `npm install`.
+3. Add or adjust tests as needed and run the suite.
+4. Open a pull request describing the change and its motivation.
 
 ## Acknowledgements
 
