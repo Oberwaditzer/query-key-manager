@@ -2,6 +2,24 @@
 
 Manage your [TanStack Query](https://tanstack.com/query/latest) keys with ease. Central and type-safe schemas make it easy to keep your queries organized and avoid typos.
 
+Query Key Manager was created to centralize your data layer definitions, cut down on redundant hook factories, and keep query helpers usable in any context—not just inside React components.
+
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Quick Start](#quick-start)
+- [Motivation](#motivation)
+- [Documentation](#documentation)
+  - [Defining Schemas](#defining-schemas)
+  - [Composing Schemas](#composing-schemas)
+  - [Manual Override](#manual-override)
+  - [defineQueryOptions](#definequeryoptions)
+  - [Per-Query Override](#per-query-override)
+  - [Usage with `QueryClient`](#usage-with-queryclient)
+  - [Object-Level Query Keys](#object-level-query-keys)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
+
 ## Getting Started
 
 ```bash
@@ -25,10 +43,12 @@ const queries = createQueryKeys({
   users: {
     list: defineQueryOptions({
       queryFn: () => fetch('/api/users').then((res) => res.json()),
+      staleTime: 30_000
     }),
     detail: (id: string) =>
       defineQueryOptions({
         queryFn: () => fetch(`/api/users/${id}`).then((res) => res.json()),
+        gcTime: 100_000
       }),
   },
 });
